@@ -17,33 +17,27 @@ public class Player : MonoBehaviour
     private int spawnCnt = 0;
 
     private bool isDie = false;
-    // Start is called before the first frame update
+
+    private AudioSource sound;
+
+
     void Start()
     {
         anim = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        sound = GetComponent<AudioSource>();
 
+        startPosition = transform.position;
         Init();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-       if(Input.GetMouseButtonDown(1))
-        {
-            CharTurn();
-        }
-       else if(Input.GetMouseButtonDown(0))
-        {
-            CharMove();
-        }
-    }
+
 
     private void Init()
     {
         anim.SetBool("Die", false);
-        startPosition = transform.position;
-        oldPosition = transform.localPosition;
+        transform.position = startPosition;
+        oldPosition = startPosition;
         moveCnt = 0;
         spawnCnt = 0;
         turnCnt = 0;
@@ -52,14 +46,19 @@ public class Player : MonoBehaviour
         isDie = false;
     }
 
-    private void CharTurn()
+    public void CharTurn()
     {
         isTurn = isTurn == true ? false : true;
 
         spriteRenderer.flipX = isTurn;
     }
-    private void CharMove()
+    public void CharMove()
     {
+        if (isDie)
+            return;
+
+        sound.Play();
+
         moveCnt++;
         MoveDirection();
 
@@ -75,6 +74,7 @@ public class Player : MonoBehaviour
             RespawnStair();
         }
 
+        GameManager.Instance.AddScore();
     }
 
     private void MoveDirection()
@@ -123,7 +123,15 @@ public class Player : MonoBehaviour
 
     private void CharDie()
     {
+        GameManager.Instance.GameOver();
         anim.SetBool("Die", true);
         isDie = true;
+    }
+
+    public void ButtonRestart()
+    {
+        Init();
+        GameManager.Instance.Init();
+        GameManager.Instance.InitStairs();
     }
 }
